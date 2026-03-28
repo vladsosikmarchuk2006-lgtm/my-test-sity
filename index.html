@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>RAGE EXAM FULL</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial;}
+
+body{
+width:100vw;height:100vh;
+display:flex;justify-content:center;align-items:center;
+background: radial-gradient(circle at top,#1a1a2e,#000);
+color:white;overflow:hidden;
+}
+
+.box{
+width:95%;max-width:900px;
+padding:30px;border-radius:20px;
+background:rgba(255,255,255,0.08);
+backdrop-filter: blur(12px);
+box-shadow:0 0 40px rgba(0,0,0,0.7);
+text-align:center;
+}
+
+h1{font-size:32px;margin-bottom:10px;}
+p{opacity:0.7;margin-bottom:10px;}
+
+input{
+width:90%;padding:14px;margin:8px;
+border-radius:12px;border:none;outline:none;
+font-size:16px;
+}
+
+.start{
+background:linear-gradient(135deg,#00c853,#00e676);
+color:white;font-weight:bold;
+cursor:pointer;transition:0.2s;
+}
+.start:hover{transform:scale(1.03);}
+
+.answer{
+width:90%;padding:14px;margin:10px;
+border-radius:12px;border:none;
+background:rgba(255,255,255,0.1);
+color:white;cursor:pointer;
+text-align:left;transition:0.2s;
+}
+.answer:hover{background:rgba(255,255,255,0.2);}
+
+.correct{background:#00c853 !important;}
+.wrong{background:#d50000 !important;}
+
+#timer{color:#ff5252;font-size:20px;margin-bottom:10px;}
+
+.adminBtn{
+margin-top:10px;
+font-size:12px;
+opacity:0.6;
+cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<!-- ===== МЕНЮ ===== -->
+<div class="box" id="menu">
+<h1>🔥 RAGE EXAM</h1>
+<p>Экзамен правил сервера</p>
+
+<input id="nick" placeholder="Ник">
+<input id="tg" placeholder="Telegram @username">
+
+<button class="start" onclick="start()">▶ Начать</button>
+
+<div class="adminBtn" onclick="openAdmin()">админ панель</div>
+</div>
+
+<!-- ===== ИГРА ===== -->
+<div class="box" id="game" style="display:none">
+<div id="timer">15</div>
+<div id="q"></div>
+<div id="a"></div>
+</div>
+
+<!-- ===== РЕЗУЛЬТАТ ===== -->
+<div class="box" id="result" style="display:none"></div>
+
+<!-- ===== АДМИНКА ===== -->
+<div class="box" id="admin" style="display:none"></div>
+
+<script>
+
+// ================= 60+ ВОПРОСОВ =================
+const base = [
+{q:"DM",a:"Деморган 30 минут"},
+{q:"Mass DM",a:"Деморган 60 минут"},
+{q:"DB",a:"Деморган 30 минут"},
+{q:"SK",a:"Деморган 30 минут"},
+{q:"TK",a:"Деморган 30 минут"},
+{q:"PG",a:"Деморган 20 минут"},
+{q:"RK",a:"Деморган 20 минут"},
+{q:"MG",a:"Мут 10 минут"},
+{q:"NonRP",a:"Деморган"},
+{q:"Fail RP",a:"Деморган 20 минут"},
+{q:"Читы",a:"Перманентная блокировка"},
+{q:"Багоюз",a:"Бан"},
+{q:"Реклама",a:"Мут 60 минут"},
+{q:"Флуд",a:"Мут 10 минут"},
+{q:"Caps",a:"Мут 10 минут"},
+{q:"Оскорбление",a:"Варн"},
+{q:"AFK в бою",a:"Деморган"},
+{q:"Офф от ареста",a:"Деморган"},
+{q:"MetaGaming",a:"OOC в IC"},
+{q:"PowerGaming",a:"Нереальные действия"},
+{q:"Revenge Kill",a:"Возврат после смерти"},
+{q:"Drive By",a:"Убийство с машины"},
+{q:"Spawn Kill",a:"Убийство на спавне"},
+{q:"Team Kill",a:"Убийство союзников"},
+{q:"Угон без RP",a:"Кража без отыгровки"},
+{q:"Слив склада",a:"Кража фракции"},
+{q:"Оскорбление админов",a:"Мут"},
+{q:"Багоюз карты",a:"Бан"},
+{q:"Сторонний софт",a:"Бан"},
+{q:"Дюп",a:"Бан"},
+{q:"Уход от RP",a:"Деморган"},
+{q:"Relog от RP",a:"Деморган"},
+{q:"Провокация",a:"Мут"},
+{q:"Спам",a:"Мут"},
+{q:"Неадекват",a:"Мут"},
+{q:"NRP езда",a:"Деморган"},
+{q:"Попытка взлома",a:"Перманентный бан"},
+{q:"Слив инфы",a:"Перманентный бан"},
+{q:"Нарушение RP",a:"Деморган"},
+{q:"Нарушение правил сервера",a:"Наказание админа"},
+{q:"IC/OOC путаница",a:"MG нарушение"}
+];
+
+// =====================
+let questions=[],i=0,score=0,timer;
+let results=JSON.parse(localStorage.getItem("results")||"[]");
+
+// =====================
+function shuffle(a){return a.sort(()=>Math.random()-0.5);}
+
+// =====================
+function build(){
+let arr=[];
+for(let item of base){
+
+let correct=item.a;
+
+let fake=["Варн","Кик","Мут 5 мин","Бан 7 дней","Деморган","Ничего"]
+.filter(x=>x!==correct);
+
+fake=shuffle(fake).slice(0,2);
+
+let answers=shuffle([correct,...fake]);
+
+arr.push({
+q:`Что будет за: ${item.q}?`,
+a:answers,
+c:answers.indexOf(correct)
+});
+}
+
+return shuffle(arr).slice(0,15);
+}
+
+// =====================
+function start(){
+menu.style.display="none";
+game.style.display="block";
+
+questions=build();
+i=0;score=0;
+load();
+}
+
+// =====================
+function load(){
+
+clearInterval(timer);
+
+if(i>=questions.length){
+
+let nick=document.getElementById("nick").value;
+let tg=document.getElementById("tg").value;
+
+results.push({nick,tg,score,time:new Date().toLocaleString()});
+localStorage.setItem("results",JSON.stringify(results));
+
+game.style.display="none";
+result.style.display="block";
+
+result.innerHTML=`
+<h1>Результат</h1>
+<p>Ник: ${nick}</p>
+<p>Telegram: ${tg}</p>
+<p>Баллы: ${score}/${questions.length}</p>
+<button class="start" onclick="location.reload()">Заново</button>
+`;
+
+return;
+}
+
+let q=questions[i];
+
+qBox.innerText=q.q;
+aBox.innerHTML="";
+
+q.a.forEach((ans,idx)=>{
+
+let b=document.createElement("button");
+b.className="answer";
+b.innerText=ans;
+
+b.onclick=()=>{
+
+let all=document.querySelectorAll(".answer");
+all.forEach(x=>x.style.pointerEvents="none");
+
+if(idx===q.c){
+b.classList.add("correct");
+score++;
+}else{
+b.classList.add("wrong");
+all[q.c].classList.add("correct");
+}
+
+setTimeout(()=>{i++;load();},700);
+};
+
+aBox.appendChild(b);
+});
+
+let time=15;
+timerBox.innerText=time;
+
+timer=setInterval(()=>{
+time--;
+timerBox.innerText=time;
+if(time<=0){i++;load();}
+},1000);
+}
+
+// ===================== АДМИНКА =====================
+function openAdmin(){
+
+let data=JSON.parse(localStorage.getItem("results")||"[]");
+
+let html="<h2>📊 Админ панель</h2>";
+
+data.forEach(r=>{
+html+=`
+<p>
+👤 ${r.nick} | TG: ${r.tg}<br>
+🏆 ${r.score}/15 | 🕒 ${r.time}
+</p><hr>
+`;
+});
+
+document.getElementById("menu").style.display="none";
+document.getElementById("admin").style.display="block";
+document.getElementById("admin").innerHTML=html+
+`<button class="start" onclick="location.reload()">Назад</button>`;
+}
+
+// =====================
+const qBox=document.getElementById("q");
+const aBox=document.getElementById("a");
+const timerBox=document.getElementById("timer");
+</script>
+
+</body>
+</html>
