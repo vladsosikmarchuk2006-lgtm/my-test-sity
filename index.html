@@ -2,276 +2,279 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>RAGE EXAM FULL</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hasov Russia | Full Test</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial;}
-
 body{
-width:100vw;height:100vh;
-display:flex;justify-content:center;align-items:center;
-background: radial-gradient(circle at top,#1a1a2e,#000);
-color:white;overflow:hidden;
+  margin:0;
+  font-family:'Arial Black', Gadget, sans-serif;
+  background:#0f0f0f;
+  color:white;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+  padding:10px;
+  box-sizing:border-box;
 }
-
 .box{
-width:95%;max-width:900px;
-padding:30px;border-radius:20px;
-background:rgba(255,255,255,0.08);
-backdrop-filter: blur(12px);
-box-shadow:0 0 40px rgba(0,0,0,0.7);
-text-align:center;
+  width:100%;
+  max-width:700px;
+  background:#1c1c1c;
+  padding:25px;
+  margin:15px 0;
+  border-radius:20px;
+  text-align:center;
+  box-shadow:0 0 30px rgba(0,255,136,0.7);
 }
-
-h1{font-size:32px;margin-bottom:10px;}
-p{opacity:0.7;margin-bottom:10px;}
-
+h2{
+  margin:10px 0;
+  font-size:28px;
+  color:#00ff88;
+  text-shadow:0 0 10px #00ff88;
+}
+h3{
+  margin:10px 0;
+  font-size:20px;
+}
+#q{
+  font-size:20px;
+  margin:15px 0;
+  word-wrap:break-word;
+  overflow-wrap:break-word;
+}
+button{
+  width:100%;
+  padding:15px;
+  margin:8px 0;
+  border:none;
+  border-radius:12px;
+  background:#2b2b2b;
+  color:white;
+  font-size:16px;
+  cursor:pointer;
+  transition:0.3s;
+}
+button:hover{
+  background:#00ff88;
+  color:#000;
+  font-weight:bold;
+}
 input{
-width:90%;padding:14px;margin:8px;
-border-radius:12px;border:none;outline:none;
-font-size:16px;
+  width:100%;
+  padding:14px;
+  margin:8px 0;
+  border-radius:10px;
+  border:none;
+  box-sizing:border-box;
+  font-size:16px;
 }
-
-.start{
-background:linear-gradient(135deg,#00c853,#00e676);
-color:white;font-weight:bold;
-cursor:pointer;transition:0.2s;
+#timer{
+  font-size:24px;
+  margin:5px 0;
 }
-.start:hover{transform:scale(1.03);}
-
-.answer{
-width:90%;padding:14px;margin:10px;
-border-radius:12px;border:none;
-background:rgba(255,255,255,0.1);
-color:white;cursor:pointer;
-text-align:left;transition:0.2s;
-}
-.answer:hover{background:rgba(255,255,255,0.2);}
-
-.correct{background:#00c853 !important;}
-.wrong{background:#d50000 !important;}
-
-#timer{color:#ff5252;font-size:20px;margin-bottom:10px;}
-
-.adminBtn{
-margin-top:10px;
-font-size:12px;
-opacity:0.6;
-cursor:pointer;
-}
+.green{color:#00ff88;}
+.red{color:#ff4d4d;}
+.hidden{display:none;}
 </style>
 </head>
-
 <body>
 
-<!-- ===== МЕНЮ ===== -->
-<div class="box" id="menu">
-<h1>🔥 Hasov Russia</h1>
-<p>Экзамен правил сервера</p>
-
-<input id="nick" placeholder="Ник">
-<input id="tg" placeholder="Telegram @username">
-
-<button class="start" onclick="start()">▶ Начать</button>
-
-<div class="adminBtn" onclick="openAdmin()">админ панель</div>
-</div>
-
-<!-- ===== ИГРА ===== -->
-<div class="box" id="game" style="display:none">
-<div id="timer">15</div>
-<div id="q"></div>
+<div class="box">
+<h2>🔥 Тест на пост администратора Hasov </h2>
+<input id="player" placeholder="Введите никнейм">
+<button onclick="start()">START</button>
+<h3 id="timer"></h3>
+<h3 id="q"></h3>
 <div id="a"></div>
+<h3 id="r"></h3>
+<input id="customMsg" placeholder="Доп. сообщение (по желанию)">
 </div>
 
-<!-- ===== РЕЗУЛЬТАТ ===== -->
-<div class="box" id="result" style="display:none"></div>
-
-<!-- ===== АДМИНКА ===== -->
-<div class="box" id="admin" style="display:none"></div>
+<div class="box">
+<h2>🔐 ADMIN PANEL</h2>
+<input id="adminPass" type="password" placeholder="Пароль">
+<button onclick="adminLogin()">LOGIN</button>
+<div id="adminPanel" class="hidden">
+<h3>Игроки и результаты</h3>
+<div id="history"></div>
+<button onclick="clearAll()">RESET</button>
+</div>
+</div>
 
 <script>
+// ====== TELEGRAM CONFIG ======
+const TELEGRAM_TOKEN = "8738391339:AAHtP_F7ur_CIuyBXNqlinYgZ44mD3bP2Sc";
+const TELEGRAM_CHAT_ID = "-5106503258";
 
-// ================= 60+ ВОПРОСОВ =================
-const base = [
-{q:"DM",a:"Деморган 30 минут"},
-{q:"Mass DM",a:"Деморган 60 минут"},
-{q:"DB",a:"Деморган 30 минут"},
-{q:"SK",a:"Деморган 30 минут"},
-{q:"TK",a:"Деморган 30 минут"},
-{q:"PG",a:"Деморган 20 минут"},
-{q:"RK",a:"Деморган 20 минут"},
-{q:"MG",a:"Мут 10 минут"},
-{q:"NonRP",a:"Деморган"},
-{q:"Fail RP",a:"Деморган 20 минут"},
-{q:"Читы",a:"Перманентная блокировка"},
-{q:"Багоюз",a:"Бан"},
-{q:"Реклама",a:"Мут 60 минут"},
-{q:"Флуд",a:"Мут 10 минут"},
-{q:"Caps",a:"Мут 10 минут"},
-{q:"Оскорбление",a:"Варн"},
-{q:"AFK в бою",a:"Деморган"},
-{q:"Офф от ареста",a:"Деморган"},
-{q:"MetaGaming",a:"OOC в IC"},
-{q:"PowerGaming",a:"Нереальные действия"},
-{q:"Revenge Kill",a:"Возврат после смерти"},
-{q:"Drive By",a:"Убийство с машины"},
-{q:"Spawn Kill",a:"Убийство на спавне"},
-{q:"Team Kill",a:"Убийство союзников"},
-{q:"Угон без RP",a:"Кража без отыгровки"},
-{q:"Слив склада",a:"Кража фракции"},
-{q:"Оскорбление админов",a:"Мут"},
-{q:"Багоюз карты",a:"Бан"},
-{q:"Сторонний софт",a:"Бан"},
-{q:"Дюп",a:"Бан"},
-{q:"Уход от RP",a:"Деморган"},
-{q:"Relog от RP",a:"Деморган"},
-{q:"Провокация",a:"Мут"},
-{q:"Спам",a:"Мут"},
-{q:"Неадекват",a:"Мут"},
-{q:"NRP езда",a:"Деморган"},
-{q:"Попытка взлома",a:"Перманентный бан"},
-{q:"Слив инфы",a:"Перманентный бан"},
-{q:"Нарушение RP",a:"Деморган"},
-{q:"Нарушение правил сервера",a:"Наказание админа"},
-{q:"IC/OOC путаница",a:"MG нарушение"}
+// ====== ВОПРОСЫ ======
+const bank = [
+{q:"DM — это?",a:["Убийство без IC причины","РП дуэль","Случайный разговор"],c:0},
+{q:"MG означает:",a:["Использование OOC информации в IC","РП стиль","Игровой чат"],c:0},
+{q:"RK — это:",a:["Возврат к месту смерти для мести","РП восстановление","Телепорт персонажа"],c:0},
+{q:"SK — это:",a:["Убийство на спавне","РП зона","Игровой диалог"],c:0},
+{q:"TK — это:",a:["Убийство союзников","Убийство NPC","РП помощь"],c:0},
+{q:"PG — это:",a:["Нереалистичное поведение без страха","РП бой","Тактика"],c:0},
+{q:"NRP означает:",a:["Нарушение RP логики","РП поведение","Обычная игра"],c:0},
+{q:"IC информация:",a:["Информация внутри игры","Discord чат","Реальная жизнь"],c:0},
+{q:"OOC информация:",a:["Вне игрового мира","Игровой чат","РП информация"],c:0},
+{q:"FRP — это:",a:["Нарушение логики RP","Обычный бой","Чат"],c:0},
+{q:"FearRP означает:",a:["Игрок обязан бояться за жизнь","Игнор угроз","РП стиль"],c:0},
+{q:"PowerGaming — это:",a:["Нереальные действия без шансов","РП бой","Реализм"],c:0},
+{q:"Metagaming — это:",a:["Использование внешней информации","РП стиль","IC логика"],c:0},
+{q:"RP смерть:",a:["Полная потеря персонажа","Респавн","Возврат"],c:0},
+{q:"Злоупотребление RP:",a:["Нереалистичные действия","РП игра","Работа"],c:0},
+
+// ===== НАКАЗАНИЯ =====
+{q:"Что будет за передачу аккаунта 3-му лицу?",a:["Перманентная блокировка","Блокировка 14 дней","Предупреждение"],c:0},
+{q:"Что будет за продажу / покупку аккаунта?",a:["Перманентная блокировка","Блокировка 30 дней","Деморган"],c:0},
+{q:"Что будет за использование более 3 аккаунтов?",a:["Блокировка всех аккаунтов на 14 дней","Перманентная блокировка","Предупреждение"],c:0},
+{q:"Что будет за махинации с валютой?",a:["Перманентная блокировка","Изъятие","Деморган"],c:0},
+{q:"Что будет за продажу за реальные деньги?",a:["Перманентная блокировка","30 дней","Мут"],c:0},
+{q:"Что будет за передачу имущества с аккаунта под баном?",a:["Изъятие + перманент","14 дней","Предупреждение"],c:0},
+{q:"Что будет за монополию бизнесов?",a:["14 дней + изъятие","30 дней","Предупреждение"],c:0},
+{q:"Что будет за использование промокодов на твинках?",a:["14 дней + изъятие","Предупреждение","Мут"],c:0},
+{q:"Что будет за игру на нескольких аккаунтах одновременно?",a:["14 дней","Перманент","Предупреждение"],c:0},
+{q:"Что будет за имущество на твинках?",a:["14-30 дней + изъятие","Предупреждение","Мут"],c:0},
+{q:"Что будет за передачу имущества бесплатно?",a:["14-30 дней + изъятие","Предупреждение","Мут"],c:0},
+{q:"Что будет за передачу имущества с твинка на основу?",a:["Перманент","30 дней","Предупреждение"],c:0},
+{q:"Что будет за DM без причины?",a:["30 минут деморган","40 минут","20 минут"],c:0},
+{q:"Что будет за массовый DM?",a:["60 минут деморган","30 минут","20 минут"],c:0},
+{q:"Что будет за DM в зеленой зоне?",a:["40 минут деморган","30 минут","20 минут"],c:0},
+{q:"Что будет за DB?",a:["30 минут деморган","20 минут","40 минут"],c:0},
+{q:"Что будет за SK?",a:["30 минут деморган","20 минут","40 минут"],c:0},
+{q:"Что будет за TK?",a:["30 минут деморган","20 минут","40 минут"],c:0},
+{q:"Что будет за PG?",a:["20 минут деморган","30 минут","40 минут"],c:0},
+{q:"Что будет за RK?",a:["20 минут деморган","30 минут","40 минут"],c:0},
+{q:"Что будет за NRP?",a:["30 минут деморган","варн","кик"],c:0},
+{q:"Что будет за MG?",a:["Мут 10 минут","варн","бан"],c:0},
+{q:"Что будет за уход от RP?",a:["Предупреждение","30 минут","бан"],c:0},
+{q:"Что будет за оскорбление родных?",a:["120 минут мут","варн","кик"],c:0},
+{q:"Что будет за флуд?",a:["10 минут мут","варн","кик"],c:0},
+{q:"Что будет за OOC оскорбление?",a:["30 минут мут","варн","кик"],c:0},
+{q:"Что будет за Caps?",a:["10 минут мут","варн","кик"],c:0},
+{q:"Что будет за транслит?",a:["10 минут мут","варн","кик"],c:0},
+{q:"Что будет за рекламу?",a:["60 минут мут","варн","кик"],c:0},
+{q:"Что будет за ввод в заблуждение?",a:["60-120 минут мут","варн","кик"],c:0},
+{q:"Что будет за помеху администрации?",a:["10 минут деморган","варн","мут"],c:0},
+{q:"Что будет за обман администрации?",a:["30 минут мут","варн","бан"],c:0},
+{q:"Что будет за читы?",a:["Перманент","30 дней","варн"],c:0},
+{q:"Что будет за распространение читов?",a:["Перманент","30 дней","варн"],c:0},
+{q:"Что будет за обман игроков?",a:["Перманент","30 дней","варн"],c:0},
+{q:"Что будет за угрозы в реальной жизни?",a:["Бан 30 дней","варн","мут"],c:0},
+{q:"Что будет за слив личной информации?",a:["Перманент","30 дней","варн"],c:0},
+{q:"Что будет за нац. оскорбления?",a:["60 минут мут","варн","кик"],c:0},
+{q:"Что будет за рекламу сторонних ресурсов?",a:["60 минут мут","варн","кик"],c:0}
 ];
 
-// =====================
-let questions=[],i=0,score=0,timer;
-let results=JSON.parse(localStorage.getItem("results")||"[]");
+// ====== ЛОГИКА ТЕСТА ======
+let test=[],i=0,score=0,player="";
+let time=10,interval;
+let answered=false,locked=false;
 
-// =====================
-function shuffle(a){return a.sort(()=>Math.random()-0.5);}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function randomCode(len=6){return Math.random().toString(36).substring(2,len+2).toUpperCase();}
 
-// =====================
-function build(){
-let arr=[];
-for(let item of base){
-
-let correct=item.a;
-
-let fake=["Варн","Кик","Мут 5 мин","Бан 7 дней","Деморган","Ничего"]
-.filter(x=>x!==correct);
-
-fake=shuffle(fake).slice(0,2);
-
-let answers=shuffle([correct,...fake]);
-
-arr.push({
-q:`Что будет за: ${item.q}?`,
-a:answers,
-c:answers.indexOf(correct)
-});
-}
-
-return shuffle(arr).slice(0,15);
-}
-
-// =====================
 function start(){
-menu.style.display="none";
-game.style.display="block";
-
-questions=build();
-i=0;score=0;
-load();
+  player=document.getElementById("player").value;
+  if(!player){alert("Введите ник");return;}
+  test=shuffle([...bank]); // теперь все вопросы
+  i=0;score=0;
+  next();
 }
 
-// =====================
-function load(){
-
-clearInterval(timer);
-
-if(i>=questions.length){
-
-let nick=document.getElementById("nick").value;
-let tg=document.getElementById("tg").value;
-
-results.push({nick,tg,score,time:new Date().toLocaleString()});
-localStorage.setItem("results",JSON.stringify(results));
-
-game.style.display="none";
-result.style.display="block";
-
-result.innerHTML=`
-<h1>Результат</h1>
-<p>Ник: ${nick}</p>
-<p>Telegram: ${tg}</p>
-<p>Баллы: ${score}/${questions.length}</p>
-<h1>Новые результаты теста!</h1
-<button class="start" onclick="location.reload()">Заново</button>
-`;
-
-return;
+function timer(){
+  clearInterval(interval);
+  time=10;answered=false;locked=false;
+  document.getElementById("timer").innerText="⏱ "+time;
+  interval=setInterval(()=>{
+    time--;
+    document.getElementById("timer").innerText="⏱ "+time;
+    if(time<=0 && !answered){
+      answered=true;locked=true;
+      document.getElementById("r").innerText="TIME OUT";
+      document.getElementById("r").className="red";
+      disable();
+      setTimeout(()=>{i++;next();},600);
+    }
+  },1000);
 }
 
-let q=questions[i];
-
-qBox.innerText=q.q;
-aBox.innerHTML="";
-
-q.a.forEach((ans,idx)=>{
-
-let b=document.createElement("button");
-b.className="answer";
-b.innerText=ans;
-
-b.onclick=()=>{
-
-let all=document.querySelectorAll(".answer");
-all.forEach(x=>x.style.pointerEvents="none");
-
-if(idx===q.c){
-b.classList.add("correct");
-score++;
-}else{
-b.classList.add("wrong");
-all[q.c].classList.add("correct");
+function next(){
+  if(i>=test.length){finish();return;}
+  let q=test[i];
+  document.getElementById("q").innerText=q.q;
+  let answers=shuffle([...q.a]);
+  let box=document.getElementById("a");box.innerHTML="";
+  answers.forEach(t=>{
+    let b=document.createElement("button");
+    b.innerText=t;
+    b.onclick=()=>check(t,q);
+    box.appendChild(b);
+  });
+  document.getElementById("r").innerText="";
+  timer();
 }
 
-setTimeout(()=>{i++;load();},700);
-};
-
-aBox.appendChild(b);
-});
-
-let time=15;
-timerBox.innerText=time;
-
-timer=setInterval(()=>{
-time--;
-timerBox.innerText=time;
-if(time<=0){i++;load();}
-},1000);
+function disable(){document.querySelectorAll("#a button").forEach(b=>b.disabled=true);}
+function check(ans,q){
+  if(answered||locked)return;
+  answered=true;locked=true;clearInterval(interval);disable();
+  if(ans===q.a[q.c]){
+    score++;
+    document.getElementById("r").innerText="✔ correct";
+    document.getElementById("r").className="green";
+  } else {
+    document.getElementById("r").innerText="✖ wrong";
+    document.getElementById("r").className="red";
+  }
+  setTimeout(()=>{i++;next();},500);
 }
 
-// ===================== АДМИНКА =====================
-function openAdmin(){
+function finish(){
+  clearInterval(interval);
+  document.getElementById("q").innerText="RESULT";
+  document.getElementById("a").innerHTML="";
+  let msg=score<10?"❌ не прошёл":"✔ прошёл";
+  let code=randomCode();
+  document.getElementById("r").innerText=score+"/"+test.length+" "+msg+"\nКод: "+code;
 
-let data=JSON.parse(localStorage.getItem("results")||"[]");
+  let custom=document.getElementById("customMsg").value.trim();
+  let text=`Никнейм: ${player}\nРезультат : ${score}/${test.length}\nКод: ${code}`;
+  if(custom) text+=`\nДополнительно: ${custom}`;
 
-let html="<h2>📊 Админ панель</h2>";
+  // Отправка в Telegram
+  fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({chat_id: TELEGRAM_CHAT_ID, text})
+  });
 
-data.forEach(r=>{
-html+=`
-<p>
-👤 ${r.nick} | TG: ${r.tg}<br>
-🏆 ${r.score}/15 | 🕒 ${r.time}
-</p><hr>
-`;
-});
-
-document.getElementById("menu").style.display="none";
-document.getElementById("admin").style.display="block";
-document.getElementById("admin").innerHTML=html+
-`<button class="start" onclick="location.reload()">Назад</button>`;
+  // Сохраняем историю локально
+  let h=JSON.parse(localStorage.getItem("history")||"[]");
+  h.push({player,score,code,date:new Date().toLocaleString()});
+  localStorage.setItem("history",JSON.stringify(h));
+  loadHistory();
 }
 
-// =====================
-const qBox=document.getElementById("q");
-const aBox=document.getElementById("a");
-const timerBox=document.getElementById("timer");
+function adminLogin(){
+  if(document.getElementById("adminPass").value==="admin7197"){
+    document.getElementById("adminPanel").classList.remove("hidden");
+    loadHistory();
+  } else alert("Неверный пароль");
+}
+
+function loadHistory(){
+  let h=JSON.parse(localStorage.getItem("history")||"[]");
+  let html=h.map(e=>`${e.date} — ${e.player} — ${e.score} — ${e.code}`).join("<br>");
+  document.getElementById("history").innerHTML=html;
+}
+
+function clearAll(){
+  localStorage.removeItem("history");
+  loadHistory();
+}
 </script>
 
 </body>
